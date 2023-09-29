@@ -1,39 +1,34 @@
-const express = require('express');
-const app = express();
-const http = require('http');
+const express = require("express");
+const http = require("http");
+const cors = require("cors");
+const WebSocket = require("ws");
 const { v4: uuidv4 } = require('uuid');
-const cors = require('cors');
-const {Server} = require('ws');
 const port = 5000;
 
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
 app.use(cors());
-const server = http.createServer(app)
 
-const ws_server = new Server({ 
-  noServer: true,
-});
-
-ws_server.on('connection',(socket)=>{
+wss.on("connection", (ws) => {
   const userId = uuidv4()
-console.log(`Client connected: ${userId}`);
+  console.log(`User Connected ${userId}`);
+  
+  // ws.on('join_room',(data)=>{
+  //   ws.join(data)
+  //   console.log(`user with ID:${userId} joined room:${data}`)
+  //  })
 
-socket.on('message',(message)=>{
- console.log(`Received message: ${message}`);
-
-});
-
-socket.on('disconnect',()=>{
-    console.log(`Client disconnected: ${userId}`);
-})
-});
-
-server.on('upgrade', (request, socket, head) => {
-    ws_server.handleUpgrade(request, socket, head, (socket) => {
-      ws_server.emit('connection', socket, request);
-    });
+  ws.on("message", (message) => {
+    console.log(`message received ${message}`)
   });
 
-server.listen(port,()=>{
-    console.log(`Server is running on port ${port}`)
-})
+  ws.on("close", () => {
+    console.log("User Disconnected");
+  });
+});
+
+server.listen(port, () => {
+  console.log(`server is running on ${port}`);
+});
