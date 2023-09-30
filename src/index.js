@@ -1,7 +1,7 @@
-const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const WebSocket = require("ws");
+const express = require('express');
+const http = require('http');
+const cors = require('cors');
+const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const port = 5000;
 
@@ -11,7 +11,7 @@ const wss = new WebSocket.Server({ server });
 
 app.use(cors());
 
-wss.on("connection", (ws) => {
+wss.on('connection', (ws) => {
   const userId = uuidv4()
   console.log(`User Connected ${userId}`);
   
@@ -19,13 +19,24 @@ wss.on("connection", (ws) => {
   //   ws.join(data)
   //   console.log(`user with ID:${userId} joined room:${data}`)
   //  })
+  // ws.on('userName',(userName)=>{
+  // console.log(`userName:${userName}`)
+  // })
 
-  ws.on("message", (message) => {
-    console.log(`message received ${message}`)
+  ws.on('message', (message) => {
+    console.log(`message received:${message}`)
+    const messageData = JSON.parse(message);
+    const responseMessage = {
+     author: messageData.author,
+     message:`${messageData.message}`,
+     time:messageData.time,
+  };
+
+  ws.send(JSON.stringify(responseMessage));
   });
 
-  ws.on("close", () => {
-    console.log("User Disconnected");
+  ws.on('close', () => {
+    console.log('User Disconnected');
   });
 });
 
