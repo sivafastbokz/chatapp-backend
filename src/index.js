@@ -11,31 +11,39 @@ const wss = new WebSocket.Server({ server });
 
 app.use(cors());
 
+const rooms = new Map();
+
 wss.on('connection', (ws) => {
   const userId = uuidv4()
   console.log(`User Connected ${userId}`);
   
-  // ws.on('join_room',(data)=>{
-  //   ws.join(data)
-  //   console.log(`user with ID:${userId} joined room:${data}`)
-  //  })
-  // ws.on('userName',(userName)=>{
-  // console.log(`userName:${userName}`)
-  // })
-
   ws.on('message', (message) => {
     console.log(`message received:${message}`)
     const messageData = JSON.parse(message);
-    const responseMessage = {
-     author: messageData.author,
-     message:`${messageData.message}`,
-     time:messageData.time,
-  };
+    const roomName = messageData.room;
+    if (!rooms.has(roomName)) {
+      rooms.set(roomName, new Set());
+    }
+    rooms.get(roomName).add(ws);
 
-  ws.send(JSON.stringify(responseMessage));
+    rooms.get(roomName).forEach((client)=>{
+      const responseMessage = {
+        author: messageData.author,
+        room:roomName,
+        message:`${messageData.message}`,
+        time:messageData.time,
+     };
+     client.send(JSON.stringify(responseMessage));
+    })
   });
 
   ws.on('close', () => {
+    rooms.forEach((participants, roomName) => {
+      participants.delete(ws);
+      if (participants.size === 0) {
+        rooms.delete(roomName);
+      }
+    });
     console.log('User Disconnected');
   });
 });
