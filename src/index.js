@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const WebSocket = require('ws');
-const { v4: uuidv4 } = require('uuid');
 const port = 5000;
 const app = express();
 const server = http.createServer(app);
@@ -11,10 +10,7 @@ app.use(cors());
 
 const rooms = new Map();
 wss.on('connection', (ws) => {
-  const userId = uuidv4()
-  console.log(`User Connected ${userId}`);
   ws.on('message', (message) => {
-    console.log(`message received:${message}`)
     const messageData = JSON.parse(message);
     const roomName = messageData.room;
     if (!rooms.has(roomName)) {
@@ -40,7 +36,6 @@ wss.on('connection', (ws) => {
         rooms.delete(roomName);
       }
     });
-    console.log('User Disconnected');
   });
 });
 
